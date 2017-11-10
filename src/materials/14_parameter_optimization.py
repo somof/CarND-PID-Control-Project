@@ -172,6 +172,7 @@ def twiddle(tol=0.2):
 
 
 params, err = twiddle()
+print(params)
 print("Final twiddle error = {}".format(err))
 robot = make_robot()
 x_trajectory, y_trajectory, err = run(robot, params)
