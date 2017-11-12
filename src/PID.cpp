@@ -30,7 +30,7 @@ void PID::Init(double Kp, double Ki, double Kd, double Kp_inc, double Ki_inc, do
    twiddle_phase      = 0;
    twiddle_param_no   = 0;
 
-   twiddle_unit.resize(3);
+   twiddle_unit.resize(PID_PARAMETER_NUM);
    twiddle_unit[0] = Kp_inc;
    twiddle_unit[1] = Ki_inc;
    twiddle_unit[2] = Kd_inc;
@@ -75,69 +75,72 @@ void PID::updateParam(const int pnum, const double param_inc) {
 }
 
 void PID::RunningTwiddle(void) {
-   // const int PID_COLLECT_DATA_NUM = 10;
-   // const int PID_PARAMETER_NUM    = 3;
-
    if (twiddle_finished) {
       return;
    }
 
+   // the first measurement
    if (error_measure_num < 1) {
       best_error = curr_error;
       return;
    }
 
+   // check completion
+   if (curr_error < best_error) {
+      // increae gain and goto next param, if best error is updated
+      best_error = curr_error;
+      twiddle_unit[twiddle_param_no] *= 1.1; // proceed more
+// !!      updateParam(twiddle_param_no, twiddle_unit[twiddle_param_no]);
+      // goto next param
+      twiddle_param_no = (twiddle_param_no + 1) % PID_PARAMETER_NUM;
+      twiddle_phase = 0;
 
+
+
+      double sum_twiddle_unit = twiddle_unit[0] + twiddle_unit[1] + twiddle_unit[2];
+      if (sum_twiddle_unit < PID_TOLERANCE_THRESHOLD) {
+         std::cout << "optimazed param:"
+                   << "(" << error_measure_num << ")"
+                   << " Kp " << Kp
+                   << " Ki " << Ki
+                   << " Kd " << Kd
+                   << std::endl;
+         twiddle_finished = true;
+      }
+      return;
+   }
+
+
+   // Debug
    std::cout << "twiddle:" << std::endl;
    std::cout
       << "  pnum " << twiddle_param_no
       << "  phase " <<  twiddle_phase
       << std::endl;
 
+
    if (twiddle_phase == 0) {
-      // Phase0: one side twiddle
-      if (curr_error < best_error) {
-         best_error = curr_error;
-         twiddle_unit[twiddle_param_no] *= 1.1; // proceed more
-         updateParam(twiddle_param_no, twiddle_unit[twiddle_param_no]);
-         // goto next param
-         twiddle_param_no = (twiddle_param_no + 1) % 3;
-         twiddle_phase = 0;
-      } else {
-         // next phasse for this param
-         updateParam(twiddle_param_no, - 2. * twiddle_unit[twiddle_param_no]); // will try another side
-         twiddle_phase = 1;
-      }
+      // Phase0: try normal side twiddle with gain 1.1
+
+      twiddle_phase = 1;
 
    } else if (twiddle_phase == 1) {
-      // Phase1: another side twiddle
-      if (curr_error < best_error) {
-         best_error = curr_error;
-         twiddle_unit[twiddle_param_no] *= 1.1; // proceed more
-         updateParam(twiddle_param_no, twiddle_unit[twiddle_param_no]);
-      }
+      // Phase1: try another side twiddle with minus-gain
+
+//      updateParam(twiddle_param_no, - 2. * twiddle_unit[twiddle_param_no]); // will try another side
+      twiddle_phase = 2;
 
    } else if (twiddle_phase == 2) {
-      // Phase2: next trial
+      // Phase2: try normal side twiddle with gain 0.9
 
+//      updateParam(twiddle_param_no, 0.9 * twiddle_unit[twiddle_param_no]); // will try another side
 
 
       // goto next param
-      twiddle_param_no = (twiddle_param_no + 1) % 3;
+      twiddle_param_no = (twiddle_param_no + 1) % PID_PARAMETER_NUM;
       twiddle_phase = 0;
    }
 
-
-   double sum_twiddle_unit = twiddle_unit[0] + twiddle_unit[1] + twiddle_unit[2];
-   if (sum_twiddle_unit < PID_TOLERANCE_THRESHOLD) {
-      std::cout << "optimazed param:"
-                << " Kp " << Kp
-                << " Ki " << Ki
-                << " Kd " << Kd
-                << std::endl;
-      twiddle_finished = true;
-      return;
-   }
 }
 
 /**
