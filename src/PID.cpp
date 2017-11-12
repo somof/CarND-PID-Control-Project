@@ -1,32 +1,10 @@
 #include <vector>
+#include <iostream>
 #include "PID.h"
 
 using namespace std;
 
-/*
- * TODO: Complete the PID class.
- */
-
-PID::PID() {
-   // Errors
-   pre_cte = 0.;
-   p_error = 0.;
-   i_error = 0.;
-   d_error = 0.;
-
-   // Coefficients
-   Kp = 0.;
-   Ki = 0.;
-   Kd = 0.;
-
-   // Twiddle
-   Twiddle_error          = 0.;
-   Twiddle_best_error     = 0.;
-   Twiddle_param_no       = 0;
-   Twiddle_param_no_phase = 0;
-   Twiddle_count          = 0;
-   Twiddle_count_unit     = 0;
-}
+PID::PID() {}
 
 PID::~PID() {}
 
@@ -35,6 +13,13 @@ void PID::Init(double Kp, double Ki, double Kd, double Kp_inc, double Ki_inc, do
    p_error = 0.;
    i_error = 0.;
    d_error = 0.;
+   pre_cte = 0.;
+
+   error_count = 0;
+   error_sum   = 0.;
+   curr_error  = 0.;
+   best_error  = 0.;
+   error_measure_num = 0;
 
    // Coefficients
    this->Kp = Kp;
@@ -42,21 +27,15 @@ void PID::Init(double Kp, double Ki, double Kd, double Kp_inc, double Ki_inc, do
    this->Kd = Kd;
 
    // Twiddle
-   Twiddle_error          = 0.;
-   Twiddle_best_error     = -1.;
-   Twiddle_param_no       = 0;
-   Twiddle_param_no_phase = 0;
-   Twiddle_count          = 0;
-   Twiddle_count_unit     = 5;
+   twiddle_phase      = 0;
+   twiddle_param_no   = 0;
 
-   new_param.resize(3);
-   new_param[0]     = Kp;
-   new_param[1]     = Ki;
-   new_param[2]     = Kd;
-   new_param_inc.resize(3);
-   new_param_inc[0] = Kp_inc;
-   new_param_inc[1] = Ki_inc;
-   new_param_inc[2] = Kd_inc;
+   twiddle_unit.resize(3);
+   twiddle_unit[0] = Kp_inc;
+   twiddle_unit[1] = Ki_inc;
+   twiddle_unit[2] = Kd_inc;
+
+   twiddle_finished = false;
 }
 
 void PID::UpdateError(double cte) {
@@ -64,51 +43,100 @@ void PID::UpdateError(double cte) {
    i_error += cte;
    d_error  = cte - pre_cte;
    pre_cte  = cte;
+
+   //
+   if (error_count < PID_COLLECT_DATA_NUM) {
+      // count err
+      error_count ++;
+      error_sum += cte * cte;
+   } else {
+      // measure average err
+      curr_error  = error_sum / PID_COLLECT_DATA_NUM;
+      error_count = 0;
+      error_sum   = 0.;
+      error_measure_num ++;
+      //
+      RunningTwiddle();
+   }
 }
 
 double PID::TotalError() {
    return Kp * p_error + Ki * i_error + Kd * d_error;
 }
 
-void PID::RunningTwiddle(double cte) {
+void PID::updateParam(const int pnum, const double param_inc) {
+   if (0 == pnum) {
+      Kp += param_inc;
+   } else if (1 == pnum) {
+      Ki += param_inc;
+   } else if (2 == pnum) {
+      Kd += param_inc;
+   }
+}
 
-   if (Twiddle_count < Twiddle_count_unit) {
-      // measure err
-      Twiddle_error += cte;
-      Twiddle_count ++;
+void PID::RunningTwiddle(void) {
+   // const int PID_COLLECT_DATA_NUM = 10;
+   // const int PID_PARAMETER_NUM    = 3;
+
+   if (twiddle_finished) {
+      return;
+   }
+
+   if (error_measure_num < 1) {
+      best_error = curr_error;
+      return;
    }
 
 
-   if (Twiddle_count == Twiddle_count_unit) {
+   std::cout << "twiddle:" << std::endl;
+   std::cout
+      << "  pnum " << twiddle_param_no
+      << "  phase " <<  twiddle_phase
+      << std::endl;
 
-      if (Twiddle_param_no_phase == 0) {
-         new_param[Twiddle_param_no] += new_param_inc[Twiddle_param_no];
-
-         if (Twiddle_error < Twiddle_best_error) {
-            Twiddle_best_error = Twiddle_error;
-            new_param_inc[Twiddle_param_no] *= 1.1;
-            Twiddle_param_no_phase = 2; // will finish this tern
-         } else {
-            Twiddle_param_no_phase = 1; // twiddle
-         }
-
-      } else 
-
-      if (Twiddle_param_no_phase == 1) {
-
-
-      }
-
+   if (twiddle_phase == 0) {
+      // Phase0: one side twiddle
+      if (curr_error < best_error) {
+         best_error = curr_error;
+         twiddle_unit[twiddle_param_no] *= 1.1; // proceed more
+         updateParam(twiddle_param_no, twiddle_unit[twiddle_param_no]);
+         // goto next param
+         twiddle_param_no = (twiddle_param_no + 1) % 3;
+         twiddle_phase = 0;
       } else {
-      new_param[Twiddle_param_no] -= 2. * new_param_inc[Twiddle_param_no];
-      Twiddle_param_no_phase = 1;
-
+         // next phasse for this param
+         updateParam(twiddle_param_no, - 2. * twiddle_unit[twiddle_param_no]); // will try another side
+         twiddle_phase = 1;
       }
 
+   } else if (twiddle_phase == 1) {
+      // Phase1: another side twiddle
+      if (curr_error < best_error) {
+         best_error = curr_error;
+         twiddle_unit[twiddle_param_no] *= 1.1; // proceed more
+         updateParam(twiddle_param_no, twiddle_unit[twiddle_param_no]);
+      }
 
-      //
-      Twiddle_count = 0;
-      Twiddle_error = 0.;
+   } else if (twiddle_phase == 2) {
+      // Phase2: next trial
+
+
+
+      // goto next param
+      twiddle_param_no = (twiddle_param_no + 1) % 3;
+      twiddle_phase = 0;
+   }
+
+
+   double sum_twiddle_unit = twiddle_unit[0] + twiddle_unit[1] + twiddle_unit[2];
+   if (sum_twiddle_unit < PID_TOLERANCE_THRESHOLD) {
+      std::cout << "optimazed param:"
+                << " Kp " << Kp
+                << " Ki " << Ki
+                << " Kd " << Kd
+                << std::endl;
+      twiddle_finished = true;
+      return;
    }
 }
 

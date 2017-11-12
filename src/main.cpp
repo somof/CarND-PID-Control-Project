@@ -41,7 +41,8 @@ int main()
   // Debug Twiddle
   pid_steering.Init(0.2, 0.00001, 4.0, 1, 1, 1);
   for (int i = 0; i < 1000; i++) {
-     pid_steering.RunningTwiddle(0.); // no error
+     pid_steering.UpdateError(0.1);
+     //pid_steering.RunningTwiddle(); // no error
   }
   exit(0);
 
@@ -74,7 +75,6 @@ int main()
           * another PID controller to control the speed!
           */
           pid_steering.UpdateError(cte);
-          pid_steering.RunningTwiddle(cte);
           //steer_value = - pid_steering.TotalError();
           steer_value = std::max(-1., std::min(+1., - pid_steering.TotalError())); // limit in [-1, 1].
           

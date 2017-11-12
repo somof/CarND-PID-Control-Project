@@ -6,10 +6,16 @@ public:
   /*
   * Errors
   */
-  double pre_cte;
   double p_error;
   double i_error;
   double d_error;
+  double pre_cte;
+
+  int    error_measure_num;
+  int    error_count;
+  double error_sum;
+  double curr_error;
+  double best_error;
 
   /*
   * Coefficients
@@ -21,15 +27,10 @@ public:
   /*
   * Twiddle
   */
-  int Twiddle_param_no;
-  int Twiddle_param_no_phase;
-  int Twiddle_count;
-  int Twiddle_count_unit;
-  double Twiddle_error;
-  double Twiddle_best_error;
-
-  std::vector< double > new_param;
-  std::vector< double > new_param_inc;
+  int twiddle_phase;
+  int twiddle_param_no;
+  std::vector< double > twiddle_unit;
+  bool twiddle_finished;
 
   /*
   * Constructor
@@ -61,7 +62,13 @@ public:
   /*
   * Additional Method
   */
-  void RunningTwiddle(double cte);
+  void updateParam(const int pnum, const double param_inc);
+   void RunningTwiddle(void);
 };
+
+const int    PID_COLLECT_DATA_NUM    = 10;
+const int    PID_PARAMETER_NUM       = 3;
+const double PID_TOLERANCE_THRESHOLD = 0.2;
+
 
 #endif /* PID_H */
