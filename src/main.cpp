@@ -49,9 +49,23 @@ int main()
 // optimazed param:(39)  Kp=0.535975, Ki=0.000102257, Kd=1.08884
 // optimazed param:(91)  Kp=0.253895, Ki=4.25563e-05, Kd=8.41554
 
+  //constexpr double target_speed = 42.;
+  pid_throttle.Init(0.707487, 0.000112483, 1.08884, 300, 1.00, 0.05, false);
+  pid_steering.Init(0.307213, 4.68119e-05, 8.41554, 400, 0.20, 0.03, true);
+// optimazed param:(7)  Kp=0.707487, Ki=0.000112483, Kd=1.08884
+// optimazed param:(5)  Kp=0.307213, Ki=4.68119e-05, Kd=8.41554
+
   constexpr double target_speed = 43.;
-  pid_throttle.Init(0.606188, 0.000123731, 1.19772, 300, 1.00, 0.05, false);
-  pid_steering.Init(0.309419, 6.13236e-05, 9.25709, 400, 0.20, 0.03, true);
+  pid_throttle.Init(0.856059, 0.000123731, 1.19772, 500, 0.75, 0.05, false);
+  pid_steering.Init(0.337934, 5.10250e-05, 8.41554, 800, 0.10, 0.03, true);
+
+// optimazed param:(6)  Kp=0.856059, Ki=0.000123731, Kd=1.19772
+// optimazed param:(9)  Kp=0.337934, Ki=5.10250e-05, Kd=8.41554
+
+
+//  constexpr double target_speed = 43.;
+  // pid_throttle.Init(0.606188, 0.000123731, 1.19772, 300, 1.00, 0.05, false);
+  // pid_steering.Init(0.309419, 6.13236e-05, 9.25709, 400, 0.20, 0.03, true);
 // optimazed param:(10)  Kp=0.606188, Ki=0.000123731, Kd=1.19772
 // optimazed param:(17)  Kp=0.309419, Ki=6.13236e-05, Kd=9.25709
 
