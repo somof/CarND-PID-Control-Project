@@ -11,11 +11,16 @@ public:
   double d_error;
   double pre_cte;
 
-  int    error_measure_num;
   int    error_count;
+  int    error_count_max;
+  int    best_error_count_no;
+  int    error_count_no;
+
   double error_sum;
   double curr_error;
   double best_error;
+  double error_threshold;
+  double twiddle_threshold;
 
   /*
   * Coefficients
@@ -27,10 +32,10 @@ public:
   /*
   * Twiddle
   */
-  int twiddle_phase;
+  int twiddle_state;
   int twiddle_param_no;
   std::vector< double > twiddle_unit;
-  bool twiddle_finished;
+  bool is_tuned;
 
   /*
   * Constructor
@@ -45,8 +50,8 @@ public:
   /*
   * Initialize PID.
   */
-   //void Init(double Kp, double Ki, double Kd, double Kp_inc, double Ki_inc, double Kd_inc);
-   void Init(double Kp, double Ki, double Kd, double Kp_inc = 0., double Ki_inc = 0., double Kd_inc = 0.);
+  //void Init(double Kp, double Ki, double Kd, double Kp_inc, double Ki_inc, double Kd_inc);
+  void Init(const double Kp, const double Ki, const double Kd, const int count_max, const double error_threshold, const double twiddle_threshold, const bool is_tuned);
 
   /*
   * Update the PID error variables given cross track error.
@@ -66,9 +71,7 @@ public:
    void RunningTwiddle(void);
 };
 
-const int    PID_COLLECT_DATA_NUM    = 10;
 const int    PID_PARAMETER_NUM       = 3;
-const double PID_TOLERANCE_THRESHOLD = 0.2;
 
 
 #endif /* PID_H */
