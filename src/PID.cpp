@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <math.h>
 #include "PID.h"
 
 using namespace std;
@@ -11,9 +12,9 @@ PID::~PID() {}
 void PID::Init(const double Kp, const double Ki, const double Kd,
                const int error_count_max,
                const double error_threshold,
-               const double twiddle_threshold,
                const bool is_tuned) {
    // Errors
+   first_error = true;
    p_error = 0.;
    i_error = 0.;
    d_error = 0.;
@@ -30,25 +31,29 @@ void PID::Init(const double Kp, const double Ki, const double Kd,
    this->Kp = Kp;
    this->Ki = Ki;
    this->Kd = Kd;
-   this->error_count_max = error_count_max;
-   this->error_threshold = error_threshold;
-   this->twiddle_threshold = twiddle_threshold;
-   this->is_tuned = is_tuned;
+   this->error_count_max   = error_count_max;
+   this->error_threshold   = error_threshold;
+   this->is_tuned          = is_tuned;
 
    // Twiddle
    twiddle_state    = 0;
    twiddle_param_no = 0;
 
    twiddle_unit.resize(PID_PARAMETER_NUM);
-   twiddle_unit[0] = Kp / 10.;
-   twiddle_unit[1] = Ki / 10.;
-   twiddle_unit[2] = Kd / 10.;
+   twiddle_unit[0] = Kp / 50.;
+   twiddle_unit[1] = Ki / 50.;
+   twiddle_unit[2] = Kd / 50.;
 }
 
 void PID::UpdateError(double cte) {
+   if (first_error) {
+      first_error = false;
+      d_error  = 0;
+   } else {
+      d_error  = cte - pre_cte;
+   }
    p_error  = cte;
    i_error += cte;
-   d_error  = cte - pre_cte;
    pre_cte  = cte;
 
    //
@@ -93,7 +98,7 @@ void PID::RunningTwiddle(void) {
    //             best_err = err
    //             dparam *= 1.1
    //         else:
-   //             param += - 2 * dparam
+   //             param -= 2 * dparam
    //             err = measurement()
    //             if err < best_err:
    //                 best_err = err
@@ -103,11 +108,12 @@ void PID::RunningTwiddle(void) {
    //                 dparam *= 0.9
    // 
    // 
-   // implemented algorithm pseudo code:
+   // statemachine-style algorithm pseudo code:
    // 
    //     state0: first measurement
    //         best_err = measurement()
-   //         param += dparam // positive trial
+   //         param += dparam // for positive trial
+   //         err = measurement()
    //         goto sate 1
    //     
    //     state1: post positive trial
@@ -115,9 +121,11 @@ void PID::RunningTwiddle(void) {
    //             best_err = err
    //             dparam *= 1.1
    //             next_param += next_dparam
+   //             err = measurement()
    //             goto state 1 w/ next param
    //         else:
-   //             param += - 2 * dparam // negative trial
+   //             param -= 2 * dparam // negative trial
+   //             err = measurement()
    //             goto sate 2
    //     
    //     state2: post negative trial
@@ -125,11 +133,13 @@ void PID::RunningTwiddle(void) {
    //             best_err = err
    //             dparam *= 1.1
    //             next_param += next_dparam
+   //             err = measurement()
    //             goto state 1 w/ next param
    //         else:
    //             param += dparam // back to positive gain (state 1)
    //             dparam *= 0.9 // suppress gain
    //             next_param += next_dparam
+   //             err = measurement()
    //             goto state 1 w/ next param
 
 
@@ -137,22 +147,15 @@ void PID::RunningTwiddle(void) {
       return;
    }
 
-
-   double sum_twiddle_unit = 0.;
-   if (0. != Kp) {
-      sum_twiddle_unit += twiddle_unit[0] / Kp;
-   }
-   if (0. != Ki) {
-      sum_twiddle_unit += twiddle_unit[1] / Ki;
-   }
-   if (0. != Kd) {
-      sum_twiddle_unit += twiddle_unit[2] / Kd;
+   if (error_count_max * error_count_no < 100) {
+      // vehicle speed would be not stable yet
+      return;
    }
 
 
    // the first measurement
    // force state0 by the best_error is determined
-   if (error_count_no < 1 || 0. == best_error) {
+   if (error_count_no < 1 || 0. == best_error || 0 == twiddle_state) {
       best_error = curr_error;
       best_error_count_no = error_count_no;
 
@@ -168,9 +171,28 @@ void PID::RunningTwiddle(void) {
    }
 
 
+   { // Debug Msg
+      // std::cout << "twiddle:" << std::endl;
+      std::cout
+         << "  param " << twiddle_param_no
+         << "  state " << twiddle_state
+         << "  error " << curr_error;
+      // << "  best error " << std::min(best_error, curr_error);
+      if (curr_error < best_error) {
+         std::cout << "  new params:"
+                   << "(" << error_count_no << ")"
+                   << "  " << Kp
+                   << ", " << Ki
+                   << ", " << Kd;
+      } else {
+         std::cout << "  +" << error_count_no - best_error_count_no << " loop";
+      }
+      std::cout << std::endl;
+   }
+
+
    // next twiddle when convergence
-   if (best_error < error_threshold || sum_twiddle_unit < twiddle_threshold ||
-       best_error_count_no + 6 < error_count_no) {
+   if (curr_error < error_threshold) {
 
       std::cout << "optimazed param:"
                 << "(" << error_count_no << ")"
@@ -189,24 +211,13 @@ void PID::RunningTwiddle(void) {
    }
 
 
-   { // Debug Msg
-      // std::cout << "twiddle:" << std::endl;
-      std::cout
-         << "  param " << twiddle_param_no
-         << "  state " << twiddle_state
-         << "  error " << curr_error;
-      // << "  best error " << std::min(best_error, curr_error);
-      if (curr_error < best_error) {
-         std::cout << "  new params:"
-                   << "(" << error_count_no << ")"
-                   << "  Kp=" << Kp
-                   << ", Ki=" << Ki
-                   << ", Kd=" << Kd;
-      }
-      std::cout << std::endl;
+   if (best_error_count_no + PID_PARAMETER_NUM * 4 <= error_count_no) {
+      // give up optimaization
+      return;
    }
 
 
+   // determine next state
    if (1 == twiddle_state) {
       // state1: post positive trial
       if (curr_error < best_error) {
@@ -246,8 +257,5 @@ void PID::RunningTwiddle(void) {
          updateParam(twiddle_param_no, twiddle_unit[twiddle_param_no]);
          twiddle_state = 1;
       }
-
-      // check final state
-      
    }
 }

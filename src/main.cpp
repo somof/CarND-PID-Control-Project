@@ -35,70 +35,21 @@ int main()
   PID pid_steering;
   PID pid_throttle;
 
-  //constexpr double target_speed = 35.;
-  pid_throttle.Init(0.1216910, 8.45101e-05, 0.989856, 300, 1.00, 0.05, false);
-  pid_steering.Init(0.0669295, 2.36171e-05, 8.190700, 400, 0.20, 0.03, true);
-  pid_throttle.Init(0.1740180, 9.29611e-05, 1.08884, 300, 1.00, 0.05, false);
-  pid_steering.Init(0.0729532, 2.85767e-05, 9.00977, 400, 0.20, 0.03, true);
-// optimazed param:(9)  Kp=0.1740180, Ki=9.29611e-05, Kd=1.08884
-// optimazed param:(8)  Kp=0.0729532, Ki=2.85767e-05, Kd=9.00977
+  // 10H tuning for 35mph
+  // optimazed param:(419)   Kp=3.422630, Ki=0.000366662, Kd=1.96983
+  // optimazed param:(1031)  Kp=0.232654, Ki=7.50166e-06, Kd=1.08217
 
-  //constexpr double target_speed = 40.;
-  pid_throttle.Init(0.535975, 0.000102257, 1.08884, 300, 1.00, 0.05, false);
-  pid_steering.Init(0.253895, 4.25563e-05, 8.41554, 400, 0.20, 0.03, true);
-// optimazed param:(39)  Kp=0.535975, Ki=0.000102257, Kd=1.08884
-// optimazed param:(91)  Kp=0.253895, Ki=4.25563e-05, Kd=8.41554
+  constexpr double target_speed = 66.;
+  pid_throttle.Init(0.20, 0.0000, 1.0, 500, 8.00, true); // first params
+  pid_steering.Init(0.10, 1.e-05, 1.9, 500, 0.05, false); // first params
 
-  //constexpr double target_speed = 42.;
-  pid_throttle.Init(0.707487, 0.000112483, 1.08884, 300, 1.00, 0.05, false);
-  pid_steering.Init(0.307213, 4.68119e-05, 8.41554, 400, 0.20, 0.03, true);
-// optimazed param:(7)  Kp=0.707487, Ki=0.000112483, Kd=1.08884
-// optimazed param:(5)  Kp=0.307213, Ki=4.68119e-05, Kd=8.41554
+  pid_steering.Init(0.102, 1.0002e-05, 1.9, 500, 0.5, false); // after 1H tuning
+  pid_steering.Init(0.100348, 1.0002e-05, 1.9342, 500, 0.5, false); //
 
-  constexpr double target_speed = 43.;
-  pid_throttle.Init(0.856059, 0.000123731, 1.19772, 500, 0.75, 0.05, false);
-  pid_steering.Init(0.337934, 5.10250e-05, 8.41554, 800, 0.10, 0.03, true);
-
-// optimazed param:(6)  Kp=0.856059, Ki=0.000123731, Kd=1.19772
-// optimazed param:(9)  Kp=0.337934, Ki=5.10250e-05, Kd=8.41554
-
-
-//  constexpr double target_speed = 43.;
-  // pid_throttle.Init(0.606188, 0.000123731, 1.19772, 300, 1.00, 0.05, false);
-  // pid_steering.Init(0.309419, 6.13236e-05, 9.25709, 400, 0.20, 0.03, true);
-// optimazed param:(10)  Kp=0.606188, Ki=0.000123731, Kd=1.19772
-// optimazed param:(17)  Kp=0.309419, Ki=6.13236e-05, Kd=9.25709
-
-
-
-//   pid_throttle.Init(0.194097, 8.53552e-05, 0.989856, 200, 2.00, 0.05, false);
-//   pid_steering.Init(0.104684, 3.45778e-05, 11.46700, 400, 0.10, 0.03, true);
-
-//   pid_throttle.Init(0.246503, 7.68197e-05, 1.08884, 200, 2.00, 0.05, false);
-//   pid_steering.Init(0.114860, 3.49236e-05, 10.6311, 400, 0.10, 0.03, true);
-
-//   pid_throttle.Init(0.813460, 8.45017e-05, 1.19772, 200, 2.00, 0.05, false);
-//   pid_steering.Init(0.361949, 7.56820e-05, 12.4313, 400, 0.10, 0.03, true);
-
-
-//   constexpr double target_speed = 40.;
-//   pid_throttle.Init(0.1216910, 8.45101e-05, 0.989856, 200, 1.00, 0.05, false);
-//   pid_steering.Init(0.0669295, 2.36171e-05, 8.190700, 400, 0.20, 0.03, true);
-
-// optimazed param:(3)  Kp=0.1338600, Ki=9.29611e-05, Kd=0.989856
-//      new params:(3)  Kp=0.0602366, Ki=2.36171e-05, Kd=8.190700
-
-  // constexpr double target_speed = 40.;
-  // pid_throttle.Init(0.194840, 0.000101412, 0.989856, 200, 2.00, 0.05, false);
-  // pid_steering.Init(0.104785, 2.35935e-05, 8.272610, 400, 0.10, 0.03, true);
-
-  // constexpr double target_speed = 45.;
-  // pid_throttle.Init(0.255046, 0.000102426, 1.20861, 200, 2.00, 0.05, false);
-  // pid_steering.Init(0.104785, 2.59505e-05, 8.27261, 400, 0.20, 0.03, true);
-
-  // pid_throttle.Init(0.3086060, 0.000112669, 1.20861, 200, 2.00, 0.05, false);
-  // pid_steering.Init(0.1058330, 2.59505e-05, 9.09987, 400, 0.20, 0.03, true);
-
+  // pid_throttle.Init(0.20808, 0.0000, 1.0, 500, 8.00, false);
+  // pid_steering.Init(0.0995876, 9.83800e-06, 1.90000, 500, 0.5, false);
+  // pid_steering.Init(0.1013362, 9.72735e-06, 1.83184, 500, 0.5, false);
+  // pid_steering.Init(0.0993095, 9.72735e-06, 1.83184, 500, 0.5, false);
 
   h.onMessage([&pid_steering, &pid_throttle](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -122,11 +73,12 @@ int main()
           * NOTE: Feel free to play around with the throttle and speed. Maybe use
           * another PID controller to control the speed!
           */
+          double speed_err = target_speed - speed;
 
           // PID for Steering
           pid_steering.UpdateError(cte);
           steer_value = std::max(-1., std::min(+1., - pid_steering.TotalError())); // limit in [-1, 1].
-          double speed_err = target_speed - speed;
+
           // exclusive control for two twiddles
           if (pid_steering.is_tuned && pid_throttle.is_tuned) {
              std::cout << "start twiddle for throttle" << std::endl;
@@ -135,15 +87,15 @@ int main()
 
           // PID for Throttle
           pid_throttle.UpdateError(speed_err);
+          //throttle_value = pid_throttle.TotalError();
           throttle_value = std::min(1., pid_throttle.TotalError());
+
           // exclusive control for two twiddles
           if (pid_throttle.is_tuned && pid_steering.is_tuned) {
              std::cout << "start twiddle for steering" << std::endl;
              pid_steering.is_tuned = false;
           }
 
-          // std::cout << "CTE: " << cte << " Steering Value: " << steer_value << "  angle: " << angle << std::endl;
-          // std::cout << "CTE: " << cte << " Steering Value: " << steer_value << " Throttle Value: " << throttle_value << std::endl;
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;

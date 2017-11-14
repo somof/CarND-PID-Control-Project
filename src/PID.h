@@ -6,6 +6,7 @@ public:
   /*
   * Errors
   */
+  bool first_error;
   double p_error;
   double i_error;
   double d_error;
@@ -20,7 +21,6 @@ public:
   double curr_error;
   double best_error;
   double error_threshold;
-  double twiddle_threshold;
 
   /*
   * Coefficients
@@ -50,8 +50,9 @@ public:
   /*
   * Initialize PID.
   */
-  //void Init(double Kp, double Ki, double Kd, double Kp_inc, double Ki_inc, double Kd_inc);
-  void Init(const double Kp, const double Ki, const double Kd, const int count_max, const double error_threshold, const double twiddle_threshold, const bool is_tuned);
+  void Init(const double Kp, const double Ki, const double Kd,
+            const int count_max, const double error_threshold,
+            const bool is_tuned);
 
   /*
   * Update the PID error variables given cross track error.
