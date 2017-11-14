@@ -16,44 +16,50 @@ Self-Driving Car Engineer Nanodegree Program
 
 My project automatically tunes two PIDs for throttle and steering with Twiddle Algorithm.
 
-And following PID parameters are the results after about 30-60 minute auto-tuning for each speed.
+Following PID parameters are the results for each speed.
 
-- 35mph:
+- 35mph: after 12H twiddle tuning
 
-  - pid_throttle: Kp=0.135212, Ki=7.68274e-05, Kd=0.989856
-  - pid_steering: Kp=0.060845, Ki=2.35935e-05, Kd=8.190700
-
-optimazed param:(4)  Kp=0.1216910, Ki=8.45101e-05, Kd=0.989856
-updated params:(15)  Kp=0.0669295, Ki=2.36171e-05, Kd=8.190700
-
-- 40mph: 
-
-  - pid_throttle: Kp=0.194840, Ki=0.000101412, Kd=0.989856
-  - pid_steering: Kp=0.104785, Ki=2.35935e-05, Kd=8.272610
-
-- 45mph: unstable to safty drive
-
-  - pid_throttle: Kp=0.255046, Ki=0.000102426, Kd=1.20861
-  - pid_steering: Kp=0.104785, Ki=2.59505e-05, Kd=8.27261
-
-optimazed param:(3)  Kp=0.3086060, Ki=0.000112669, Kd=1.20861
- updated params:(6)  Kp=0.1058330, Ki=2.59505e-05, Kd=9.09987
-
-optimazed param:(3)  Kp=0.373413, Ki=0.000123936, Kd=1.20861
+  - pid_throttle: Kp=3.422630, Ki=0.000366662, Kd=1.96983
+  - pid_steering: Kp=0.232654, Ki=7.50166e-06, Kd=1.08217
 
 
-- 50mph: fail to tune
+- 60mph: initial parameter by trial and error
+
+  - pid_throttle: Kp=0.20, Ki=0.0001, Kd=1.0
+  - pid_steering: Kp=0.10, Ki=1.e-05, Kd=1.9
 
 
-## Implementation
+- 60mph: after 2H auto twiddling tune
+
+  - pid_throttle: 
+  - pid_steering: 
+
+- over 60mph: fail to tune
+
+  - The vehicle goes out of the course, and the auto tuning process can not keep working.
+
+
+
+## Description
 
 ### Effect of the P.I.D.
+
+<img width=600 src="img/PID_CTE.png">
+
+Each of P.I.D. components 
+CTE(Cross Track Error) 
+
 
 CTE(Cross Track Error)
 
 - P: Proportion effect
 
   - 
+Kp(Proportional Coefficient): 
+reduce CTE(Cross Track Error) in proportion to CTE value.
+but also has heavy overshoot.
+
 
 - I: Integration effect
 
@@ -63,7 +69,55 @@ CTE(Cross Track Error)
 
   - 
 
+### The effect each of the P, I, D components
 
+the effect of the P, I, D component of the PID algorithm in their implementation.
+
+Visual aids are encouraged, 
+i.e. record of a small video of the car in the simulator 
+and describe what each component is set to.
+
+CTE(Cross Track Error) 
+ 
+
+
+
+
+
+
+Ki(Integral Coefficient):
+reduce CTE(Cross Track Error) in proportion to CTE value.
+
+Kd(Differential Coefficient):
+
+
+
+
+### How the final hyperparameters were chosen.
+
+Student discusses how they chose the final hyperparameters 
+(P, I, D coefficients). 
+
+This could be have been done through manual tuning,
+twiddle, SGD, or something else, or a combination!
+
+
+initial values
+
+
+twiddle algorithm
+びちょうせい
+minute adjustment/fine tuning
+
+
+
+
+
+| Source        | Destination   | 
+|:-------------:|:-------------:| 
+
+
+## Implementation
 
 ### porting Twiddle Algorithm
 
@@ -158,7 +212,9 @@ Therefore,
 my project can prevent the conflict and tune the two PIDs alternately.
 
 
-### Consideration
+## Parameter Tuning
+
+## Consideration
 
 As the speed became faster,
 Twiddle Algorithm seemed to take large Kp(=proportinal weight).

@@ -147,7 +147,7 @@ void PID::RunningTwiddle(void) {
       return;
    }
 
-   if (error_count_max * error_count_no < 100) {
+   if (error_count_max * error_count_no < 200) {
       // vehicle speed would be not stable yet
       return;
    }
@@ -176,23 +176,21 @@ void PID::RunningTwiddle(void) {
       std::cout
          << "  param " << twiddle_param_no
          << "  state " << twiddle_state
+         << "  +" << error_count_no - best_error_count_no
          << "  error " << curr_error;
-      // << "  best error " << std::min(best_error, curr_error);
       if (curr_error < best_error) {
          std::cout << "  new params:"
                    << "(" << error_count_no << ")"
                    << "  " << Kp
                    << ", " << Ki
                    << ", " << Kd;
-      } else {
-         std::cout << "  +" << error_count_no - best_error_count_no << " loop";
       }
       std::cout << std::endl;
    }
 
 
    // next twiddle when convergence
-   if (curr_error < error_threshold) {
+   if (curr_error < error_threshold || best_error < error_threshold) {
 
       std::cout << "optimazed param:"
                 << "(" << error_count_no << ")"
@@ -203,6 +201,7 @@ void PID::RunningTwiddle(void) {
                 << std::endl;
 
       // twiddle_finished = true;
+      best_error_count_no = error_count_no;
       best_error       = 0.;
       twiddle_param_no = 0;
       twiddle_state    = 0;
@@ -213,6 +212,14 @@ void PID::RunningTwiddle(void) {
 
    if (best_error_count_no + PID_PARAMETER_NUM * 4 <= error_count_no) {
       // give up optimaization
+      std::cout << "abort optimazation:"
+                << std::endl
+                << std::endl;
+      best_error_count_no = error_count_no;
+      best_error       = 0.;
+      twiddle_param_no = 0;
+      twiddle_state    = 0;
+      is_tuned         = true;
       return;
    }
 

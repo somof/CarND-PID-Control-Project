@@ -39,17 +39,19 @@ int main()
   // optimazed param:(419)   Kp=3.422630, Ki=0.000366662, Kd=1.96983
   // optimazed param:(1031)  Kp=0.232654, Ki=7.50166e-06, Kd=1.08217
 
-  constexpr double target_speed = 66.;
-  pid_throttle.Init(0.20, 0.0000, 1.0, 500, 8.00, true); // first params
-  pid_steering.Init(0.10, 1.e-05, 1.9, 500, 0.05, false); // first params
+  //constexpr double target_speed = 60.;
+  pid_throttle.Init(0.20, 0.0001, 1.0, 700, 1.00, false); // first params
+  pid_steering.Init(0.10, 1.e-05, 1.9, 700, 0.30, true); // first params
 
-  pid_steering.Init(0.102, 1.0002e-05, 1.9, 500, 0.5, false); // after 1H tuning
-  pid_steering.Init(0.100348, 1.0002e-05, 1.9342, 500, 0.5, false); //
+  constexpr double target_speed = 60.;
+  // pid_throttle.Init(0.294528, 0.00010404, 1.02, 400, 1.00, false);
+  // pid_steering.Init(0.0975397, 1.06121e-05, 1.77694, 700, 0.5, false);
 
-  // pid_throttle.Init(0.20808, 0.0000, 1.0, 500, 8.00, false);
-  // pid_steering.Init(0.0995876, 9.83800e-06, 1.90000, 500, 0.5, false);
-  // pid_steering.Init(0.1013362, 9.72735e-06, 1.83184, 500, 0.5, false);
-  // pid_steering.Init(0.0993095, 9.72735e-06, 1.83184, 500, 0.5, false);
+  // 11/14 18:00 start
+  pid_throttle.Init(0.2945280, 0.000104040, 1.02000, 1200, 1.0, false);
+  pid_steering.Init(0.0975397, 1.06121e-05, 1.77694, 1200, 0.5, false);
+
+
 
   h.onMessage([&pid_steering, &pid_throttle](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -79,28 +81,15 @@ int main()
           pid_steering.UpdateError(cte);
           steer_value = std::max(-1., std::min(+1., - pid_steering.TotalError())); // limit in [-1, 1].
 
-          // exclusive control for two twiddles
-          if (pid_steering.is_tuned && pid_throttle.is_tuned) {
-             std::cout << "start twiddle for throttle" << std::endl;
-             pid_throttle.is_tuned = false;
-          }
-
           // PID for Throttle
           pid_throttle.UpdateError(speed_err);
           //throttle_value = pid_throttle.TotalError();
           throttle_value = std::min(1., pid_throttle.TotalError());
 
-          // exclusive control for two twiddles
-          if (pid_throttle.is_tuned && pid_steering.is_tuned) {
-             std::cout << "start twiddle for steering" << std::endl;
-             pid_steering.is_tuned = false;
-          }
-
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          //msgJson["throttle"] = 0.3;
-          msgJson["throttle"] = throttle_value;
+          msgJson["throttle"] = throttle_value; // initial value is 0.3
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           // std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
