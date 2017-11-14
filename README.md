@@ -48,7 +48,6 @@ Following PID parameters are the results for each speed.
 <img width=600 src="img/PID_CTE.png">
 
 Each of P.I.D. components 
-CTE(Cross Track Error) 
 
 
 CTE(Cross Track Error)
@@ -63,11 +62,11 @@ but also has heavy overshoot.
 
 - I: Integration effect
 
-  - 
+  - offset
 
 - D: Differential effect
 
-  - 
+  - prevent overshoot (mainly caused by Kp)
 
 ### The effect each of the P, I, D components
 
@@ -106,15 +105,11 @@ initial values
 
 
 twiddle algorithm
-びちょうせい
 minute adjustment/fine tuning
 
 
 
 
-
-| Source        | Destination   | 
-|:-------------:|:-------------:| 
 
 
 ## Implementation
@@ -126,6 +121,8 @@ I had the Twiddle Algorithm converted into state-machine style as bellows:
 
 original Twiddle Algorithm pseudo code from the lesson:
 
+Twiddle Algorithm pseudo code:
+
         best_err = measurement()
         for param, dparam in zip(all_params, all_dparam):
             param += dparam
@@ -134,7 +131,7 @@ original Twiddle Algorithm pseudo code from the lesson:
                 best_err = err
                 dparam *= 1.1
             else:
-                param += - 2 * dparam
+                param -= 2 * dparam
                 err = measurement()
                 if err < best_err:
                     best_err = err
@@ -143,11 +140,13 @@ original Twiddle Algorithm pseudo code from the lesson:
                     param += dparam
                     dparam *= 0.9
 
-state-machine style pseudo code:
+
+    statemachine-style algorithm pseudo code:
     
         state0: first measurement
             best_err = measurement()
-            param += dparam // positive trial
+            param += dparam // for positive trial
+            err = measurement()
             goto sate 1
         
         state1: post positive trial
@@ -155,9 +154,11 @@ state-machine style pseudo code:
                 best_err = err
                 dparam *= 1.1
                 next_param += next_dparam
+                err = measurement()
                 goto state 1 w/ next param
             else:
-                param += - 2 * dparam // negative trial
+                param -= 2 * dparam // negative trial
+                err = measurement()
                 goto sate 2
         
         state2: post negative trial
@@ -165,11 +166,13 @@ state-machine style pseudo code:
                 best_err = err
                 dparam *= 1.1
                 next_param += next_dparam
+                err = measurement()
                 goto state 1 w/ next param
             else:
                 param += dparam // back to positive gain (state 1)
                 dparam *= 0.9 // suppress gain
                 next_param += next_dparam
+                err = measurement()
                 goto state 1 w/ next param
 
 
