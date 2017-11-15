@@ -3,7 +3,6 @@ Self-Driving Car Engineer Nanodegree Program
 
 ---
 
-
 ## Build and Run
 
 1. Clone this repo.
@@ -14,6 +13,17 @@ Self-Driving Car Engineer Nanodegree Program
 
 ## Result
 
+### trial and error
+
+I got parameters after some trial as folllows.
+
+- 65mph:
+
+  - pid_throttle: Kp=0.20, Ki=0.0001, Kd=1.0
+  - pid_steering: Kp=0.10, Ki=1.e-05, Kd=1.9
+
+### Automatic tuning
+
 My project automatically tunes two PIDs for throttle and steering with Twiddle Algorithm.
 
 Following PID parameters are the results for each speed.
@@ -22,13 +32,6 @@ Following PID parameters are the results for each speed.
 
   - pid_throttle: Kp=3.422630, Ki=0.000366662, Kd=1.96983
   - pid_steering: Kp=0.232654, Ki=7.50166e-06, Kd=1.08217
-
-
-- 60mph: initial parameter by trial and error
-
-  - pid_throttle: Kp=0.20, Ki=0.0001, Kd=1.0
-  - pid_steering: Kp=0.10, Ki=1.e-05, Kd=1.9
-
 
 - 60mph: after 2H auto twiddling tune
 
@@ -40,77 +43,39 @@ Following PID parameters are the results for each speed.
   - The vehicle goes out of the course, and the auto tuning process can not keep working.
 
 
-
 ## Description
 
 ### Effect of the P.I.D.
 
+PID method controls a vehicle using difference from reference signals.
+The signal is called CTE(Cross Track Error) as follwoing figure.
+
 <img width=600 src="img/PID_CTE.png">
 
-Each of P.I.D. components 
+Each of P.I.D. components have own coefficient as Kp, Ki and Kd, and are controlled their attribute as follows:
 
+- P: Proportion effect (CTE(t))
 
-CTE(Cross Track Error)
+  - Directly reduce CTE, but also has heavy overshoot.
+  - In the project, tight corner requires large Kp, but it cause awful crawling after the corner.
 
-- P: Proportion effect
+- D: Differential effect (ΔCTE(t))
 
-  - 
-Kp(Proportional Coefficient): 
-reduce CTE(Cross Track Error) in proportion to CTE value.
-but also has heavy overshoot.
+  - Suppress argent moving and oscillations.
+  - In the project, it works to prevent overshoot that would be mainly caused by Kp.
 
+- I: Integration effect (ΣCTE)
 
-- I: Integration effect
-
-  - offset
-
-- D: Differential effect
-
-  - prevent overshoot (mainly caused by Kp)
-
-### The effect each of the P, I, D components
-
-the effect of the P, I, D component of the PID algorithm in their implementation.
-
-Visual aids are encouraged, 
-i.e. record of a small video of the car in the simulator 
-and describe what each component is set to.
-
-CTE(Cross Track Error) 
- 
-
-
-
-
-
-
-Ki(Integral Coefficient):
-reduce CTE(Cross Track Error) in proportion to CTE value.
-
-Kd(Differential Coefficient):
-
-
+  - Reduce piled up error between CTE and PID controls.
+  - In the project, it is a really small value and works to make up sum of CTE.
 
 
 ### How the final hyperparameters were chosen.
 
-Student discusses how they chose the final hyperparameters 
-(P, I, D coefficients). 
+Tuning method is same as twiddle algorithm at the lesson.
 
-This could be have been done through manual tuning,
-twiddle, SGD, or something else, or a combination!
-
-
-initial values
-
-
-twiddle algorithm
-minute adjustment/fine tuning
-
-
-
-
-
+My project automatically tunes two PIDs for throttle and steering while the simulator is working.
+And the tuning process runs to got threshold error.
 
 ## Implementation
 
@@ -141,7 +106,7 @@ Twiddle Algorithm pseudo code:
                     dparam *= 0.9
 
 
-    statemachine-style algorithm pseudo code:
+Statemachine-style algorithm pseudo code:
     
         state0: first measurement
             best_err = measurement()
@@ -177,57 +142,21 @@ Twiddle Algorithm pseudo code:
 
 
 While the original Twiddle Algorithm code assumes off-line use,
-my code enables on-line tuning.
+my code suitable on-line tuning.
 
 This feature is very convenient to tune plural PIDs automatically.
 
 
-### Exclusive Twiddling
-
-Runing two twiddle algorithms concurrently caused conflict and vehicle control failure,
-before getting adequate PID parameters.
-
-So I added an exclusive logic to the two Twiddle functions in main() as following code.
-
-     // PID for Steering
-     pid_steering.UpdateError(cte);
-     steer_value = std::max(-1., std::min(+1., - pid_steering.TotalError())); // limit in [-1, 1].
-     double speed_err = target_speed - speed;
-
-     // exclusive control for two twiddles
-     if (pid_steering.is_tuned && pid_throttle.is_tuned) {
-        std::cout << "start twiddle for throttle" << std::endl;
-        pid_throttle.is_tuned = false;
-     }
-
-     // PID for Throttle
-     pid_throttle.UpdateError(speed_err);
-     throttle_value = std::min(1., pid_throttle.TotalError());
-
-     // exclusive control for two twiddles
-     if (pid_throttle.is_tuned && pid_steering.is_tuned) {
-        std::cout << "start twiddle for steering" << std::endl;
-        pid_steering.is_tuned = false;
-     }
-
-
-Therefore,
-my project can prevent the conflict and tune the two PIDs alternately.
-
-
-## Parameter Tuning
-
 ## Consideration
 
-As the speed became faster,
-Twiddle Algorithm seemed to take large Kp(=proportinal weight).
+As the target speed became faster, it seems to require large Kp and Kd(depending on Kp).
+And my project works well under 65mph speed.
 
-This is reasonable behaviour to tune to high speed drive,
-but Kp's overshoot exceed road width around 45mph speed.
+For over 65mph, careful adjustment was recommended with taking account of the causal relationship
+Because Twiddle algorithm searchs the edges of the parameters, the vehicle on the simulator is easy to fail the road.
 
-For more improvement,
-stabilization may be needed for my project.
-
+As next step,
+the program could restart automatically the simulator when the vehicle digress the road.
 
 
 
