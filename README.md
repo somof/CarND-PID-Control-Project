@@ -37,6 +37,7 @@ Parameters after auto tuning with Twiddle Algorithm are as follows.
 
   - pid_throttle: Kp=0.3064270, Ki=0.000104040, Kd=1.0200
   - pid_steering: Kp=0.0982223, Ki=1.01644e-05, Kd=1.7773
+  - <a href="img/demo-video-2017-11-15_11.21.57.mkv">video</a>
 
 - over 60mph: fail to tune
 
