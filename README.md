@@ -15,6 +15,9 @@ Self-Driving Car Engineer Nanodegree Program
 
 My project has two PIDs for throttle and steering, and I got the coefficients for each PID, by manual and automatic algorithm.
 
+<a href="img/demo-video-2017-11-15_11.21.57.mkv">Here is a video</a> as result of auto tuning.
+
+
 ### Manual tuning
 
 Parameters after some trial are as follows.
@@ -37,7 +40,6 @@ Parameters after auto tuning with Twiddle Algorithm are as follows.
 
   - pid_throttle: Kp=0.3064270, Ki=0.000104040, Kd=1.0200
   - pid_steering: Kp=0.0982223, Ki=1.01644e-05, Kd=1.7773
-  - <a href="img/demo-video-2017-11-15_11.21.57.mkv">video</a>
 
 - over 60mph: fail to tune
 
