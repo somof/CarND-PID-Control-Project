@@ -13,13 +13,11 @@ Self-Driving Car Engineer Nanodegree Program
 
 ## Result
 
-My project has two PIDs for throttle and steering.
-
-I got coefficients for each PID, by manual and automatic algorithm.
+My project has two PIDs for throttle and steering, and I got the coefficients for each PID, by manual and automatic algorithm.
 
 ### Manual tuning
 
-I got available parameters after some trial as follows.
+Parameters after some trial are as follows.
 
 - 65mph:
 
@@ -28,16 +26,14 @@ I got available parameters after some trial as follows.
 
 ### Automatic tuning
 
-My project automatically tunes two PIDs for throttle and steering with Twiddle Algorithm.
+Parameters after auto tuning with Twiddle Algorithm are as follows.
 
-Following PID parameters are the results for each speed.
-
-- 35mph: after 12H auto twiddle tuning
+- 35mph: after 12H auto tuning
 
   - pid_throttle: Kp=3.422630, Ki=0.000366662, Kd=1.96983
   - pid_steering: Kp=0.232654, Ki=7.50166e-06, Kd=1.08217
 
-- 60mph: after 2H auto twiddling tune
+- 60mph: after 2H auto tuning
 
   - pid_throttle: Kp=0.3064270, Ki=0.000104040, Kd=1.0200
   - pid_steering: Kp=0.0982223, Ki=1.01644e-05, Kd=1.7773
@@ -51,12 +47,12 @@ Following PID parameters are the results for each speed.
 
 ### Effect of the P.I.D.
 
-PID method controls a vehicle using difference from reference signals.
-The signal is called CTE(Cross Track Error) as following figure.
+PID method controls a vehicle with difference signals from the reference path plans, called as CTE(Cross Track Error).
 
 <img width=600 src="img/PID_CTE.png">
 
-Each of P.I.D. components have own coefficient as Kp, Ki and Kd, and are controlled their attribute as follows:
+PID has 3 components, P, I and D,
+that have own coefficient as Kp, Ki and Kd with their attribute as follows:
 
 - P: Proportion effect (CTE(t))
 
@@ -78,19 +74,16 @@ Each of P.I.D. components have own coefficient as Kp, Ki and Kd, and are control
 
 Tuning method is same as twiddle algorithm at the lesson.
 
-My project automatically tunes two PIDs for throttle and steering while the simulator is working.
-And the tuning process runs to got threshold error.
+And plus my project keeps up with tuning PIDs coefficients while the simulator is working on-line.
 
 ## Implementation
 
 ### porting Twiddle Algorithm
 
-To consecutively tune the two PIDs,
+For consecutively tuning PIDs,
 I had the Twiddle Algorithm converted into state-machine style as bellows:
 
 original Twiddle Algorithm pseudo code from the lesson:
-
-Twiddle Algorithm pseudo code:
 
         best_err = measurement()
         for param, dparam in zip(all_params, all_dparam):
@@ -146,24 +139,25 @@ Statemachine-style algorithm pseudo code:
 
 
 While the original Twiddle Algorithm code assumes off-line use,
-my code suitable on-line tuning.
+my code is suitable on-line use.
 
-This feature is very convenient to tune plural PIDs automatically.
+This feature is convenient to tune plural PIDs automatically.
 
 
 ## Consideration
 
-As the target speed becomes faster, large Kp and Kd(depending on Kp) values are required.
-And my project works well under 65mph speed.
+As the target speed becomes faster,
+large Kp and Kd(depending on Kp) values are required.
+And my project works well under 65mph speed if adequate initial values are given.
 
-For over 65mph,
-careful adjustment with taking account of the causal relationship was recommended by manual.
+For more over 65mph, more careful adjustment with the causal relationship was recommended by manual.
+
 In spite of the situation,
-Twiddle algorithm starts to search answers from the edges of the parameters,
+Twiddle algorithm starts to search answers from the edges of the search area,
 then the vehicle on the simulator is easy to fail the road.
 
 As next step,
-the program could restart automatically the simulator when the vehicle digress the road.
+the program could re-start automatically the simulator when the vehicle digress the road.
 
 
 # EOF
