@@ -13,9 +13,13 @@ Self-Driving Car Engineer Nanodegree Program
 
 ## Result
 
-### trial and error
+My project has two PIDs for throttle and steering.
 
-I got parameters after some trial as folllows.
+I got coefficients for each PID, by manual and automatic algorithm.
+
+### Manual tuning
+
+I got available parameters after some trial as follows.
 
 - 65mph:
 
@@ -28,15 +32,15 @@ My project automatically tunes two PIDs for throttle and steering with Twiddle A
 
 Following PID parameters are the results for each speed.
 
-- 35mph: after 12H twiddle tuning
+- 35mph: after 12H auto twiddle tuning
 
   - pid_throttle: Kp=3.422630, Ki=0.000366662, Kd=1.96983
   - pid_steering: Kp=0.232654, Ki=7.50166e-06, Kd=1.08217
 
 - 60mph: after 2H auto twiddling tune
 
-  - pid_throttle: 
-  - pid_steering: 
+  - pid_throttle: Kp=0.3064270, Ki=0.000104040, Kd=1.0200
+  - pid_steering: Kp=0.0982223, Ki=1.01644e-05, Kd=1.7773
 
 - over 60mph: fail to tune
 
@@ -48,7 +52,7 @@ Following PID parameters are the results for each speed.
 ### Effect of the P.I.D.
 
 PID method controls a vehicle using difference from reference signals.
-The signal is called CTE(Cross Track Error) as follwoing figure.
+The signal is called CTE(Cross Track Error) as following figure.
 
 <img width=600 src="img/PID_CTE.png">
 
@@ -149,15 +153,17 @@ This feature is very convenient to tune plural PIDs automatically.
 
 ## Consideration
 
-As the target speed became faster, it seems to require large Kp and Kd(depending on Kp).
+As the target speed becomes faster, large Kp and Kd(depending on Kp) values are required.
 And my project works well under 65mph speed.
 
-For over 65mph, careful adjustment was recommended with taking account of the causal relationship
-Because Twiddle algorithm searchs the edges of the parameters, the vehicle on the simulator is easy to fail the road.
+For over 65mph,
+careful adjustment with taking account of the causal relationship was recommended by manual.
+In spite of the situation,
+Twiddle algorithm starts to search answers from the edges of the parameters,
+then the vehicle on the simulator is easy to fail the road.
 
 As next step,
 the program could restart automatically the simulator when the vehicle digress the road.
-
 
 
 # EOF

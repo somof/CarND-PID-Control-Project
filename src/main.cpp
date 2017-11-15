@@ -35,22 +35,18 @@ int main()
   PID pid_steering;
   PID pid_throttle;
 
+  constexpr double target_speed = 60.;
+  pid_throttle.Init(0.20, 0.0001, 1.0, 1200, 1.0, false); // first params
+  pid_steering.Init(0.10, 1.e-05, 1.9, 1200, 0.5, true); // first params
+
   // 10H tuning for 35mph
+  // constexpr double target_speed = 35.;
   // optimazed param:(419)   Kp=3.422630, Ki=0.000366662, Kd=1.96983
   // optimazed param:(1031)  Kp=0.232654, Ki=7.50166e-06, Kd=1.08217
 
-  //constexpr double target_speed = 60.;
-  pid_throttle.Init(0.20, 0.0001, 1.0, 700, 1.00, false); // first params
-  pid_steering.Init(0.10, 1.e-05, 1.9, 700, 0.30, true); // first params
-
-  constexpr double target_speed = 60.;
-  // pid_throttle.Init(0.294528, 0.00010404, 1.02, 400, 1.00, false);
-  // pid_steering.Init(0.0975397, 1.06121e-05, 1.77694, 700, 0.5, false);
-
-  // 11/14 18:00 start
-  pid_throttle.Init(0.2945280, 0.000104040, 1.02000, 1200, 1.0, false);
-  pid_steering.Init(0.0975397, 1.06121e-05, 1.77694, 1200, 0.5, false);
-
+  // after some hours tuining for 60mph
+  pid_throttle.Init(0.3064270, 0.000104040, 1.0200, 1200, 1.0, false);
+  pid_steering.Init(0.0982223, 1.01644e-05, 1.7773, 1200, 0.5, false);
 
 
   h.onMessage([&pid_steering, &pid_throttle](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
